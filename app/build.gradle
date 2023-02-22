@@ -48,4 +48,5 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 
     implementation project(':mqtt')
+    implementation 'com.github.puyang1017:mqttv5:1.0.0'
 }
