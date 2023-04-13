@@ -5,7 +5,9 @@ import android.util.Log
 import com.qiyou.mqtt.mqttv5.IMqttStatusListener
 import com.qiyou.mqtt.mqttv5.MqttConfig
 import com.qiyou.mqtt.mqttv5.MqttV5
+import com.qiyou.mqtt.mqttv5.SSLUtil
 import org.eclipse.paho.mqttv5.client.IMqttToken
+
 
 object MqttUtils {
     var mqttV5: MqttV5? = null
@@ -18,7 +20,6 @@ object MqttUtils {
         MqttConfig.mqttClientId = "puyang"
         MqttConfig.mqttUserName = "ljbclient01"
         MqttConfig.mqttUserPw = "Z6bsl+eVuAKwbe5c7VRy+S"
-
 
         mqttV5 = MqttV5.Builder()
             .setUserContext(context)
@@ -33,7 +34,7 @@ object MqttUtils {
             .setPublishQos(MqttV5.QOS_REPEAT)
             .setPublishMsgRetained(true)
             .setCleanSession(false)
-            //.setSocketFactory(SSLUtil.getSSL())
+            .setSocketFactory(SSLUtil.getSSL())
             .setHttpsHostnameVerificationEnabled(false)
             //.setSslHostnameVerifier { hostname, session -> true }
             .setIReceiveActionListener { topic, msg ->
@@ -86,11 +87,12 @@ object MqttUtils {
                 }
             }
             .build()
-        mqttV5?.connect("tcp://139.224.44.126:1883")
+        mqttV5?.connect("ssl://139.224.44.126:8883")
+        //"ssl://139.224.44.126:1883"
     }
 
     fun disConnect(){
-        mqttV5?.destory()
+        mqttV5?.destory(false)
         mqttV5 = null
     }
 }

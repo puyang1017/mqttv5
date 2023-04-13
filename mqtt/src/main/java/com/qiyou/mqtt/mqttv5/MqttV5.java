@@ -198,6 +198,8 @@ public class MqttV5 {
     public void subscribe(String topic, MqttProperties mqttProperties) {
         try {
             if (TextUtils.isEmpty(topic)) return;
+            IMqttMessageListener[] messageListeners = new IMqttMessageListener[1];
+            messageListeners[0] = iMqttMessageListener;
             mqttClient.subscribe(new MqttSubscription(topic, this.subscribeQos), this.userContext,
                     iMqttActionListener, iMqttMessageListener, mqttProperties == null ? mMqttProperties : mqttProperties);
         } catch (MqttException e) {
@@ -235,7 +237,7 @@ public class MqttV5 {
             MqttSubscription[] subscribeTopics = new MqttSubscription[size];
             IMqttMessageListener[] messageListeners = new IMqttMessageListener[size];
             for (int i = 0; i < size; i++) {
-                subscribeTopics[i] = new MqttSubscription(MqttV5.this.subscribeTopics.get(i), QOS_UNRELIABLE);
+                subscribeTopics[i] = new MqttSubscription(topics.get(i), QOS_UNRELIABLE);
                 messageListeners[i] = iMqttMessageListener;
             }
             mqttClient.subscribe(subscribeTopics, this.userContext, iMqttActionListener, messageListeners, mqttProperties == null ? mMqttProperties : mqttProperties);
@@ -721,15 +723,15 @@ public class MqttV5 {
     /**
      * 断开链接
      */
-    public void destory() {
+    public void destory(boolean force) {
         try {
             if (mqttClient != null) {
                 if (mqttClient.isConnected()) {
                     mqttClient.disconnect();
                 }
-                mqttClient.close();
+                mqttClient.close(force);
             }
-        } catch (MqttException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
