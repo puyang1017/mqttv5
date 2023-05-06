@@ -22,3 +22,4 @@
 
 -keep class com.qiyou.mqtt.mqttv5.** {*;}
 -keep class org.eclipse.paho.mqttv5.** {*;}
+-keep class org.bouncycastle.** {*;}

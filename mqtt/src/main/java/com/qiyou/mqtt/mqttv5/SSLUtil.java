@@ -4,13 +4,20 @@ import android.content.Context;
 import android.util.Log;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openssl.PEMKeyPair;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 
 import java.io.BufferedInputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.Security;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
+import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
@@ -40,11 +47,11 @@ public class SSLUtil {
 //    }
 
     //单向认证
-    public static SSLSocketFactory getSingleSocketFactory(Context context) throws Exception {
+    public static SSLSocketFactory getSingleSocketFactory(Context context,String fileName) throws Exception {
         Security.addProvider(new BouncyCastleProvider());
         X509Certificate caCert = null;
 
-        BufferedInputStream bis = new BufferedInputStream(context.getAssets().open("self-ca.pem"));
+        BufferedInputStream bis = new BufferedInputStream(context.getAssets().open(fileName));
         CertificateFactory cf = CertificateFactory.getInstance("X.509");
 
         while (bis.available() > 0) {
@@ -61,14 +68,14 @@ public class SSLUtil {
     }
 
     //双向认证  BC在Android9以上无法试用 先屏蔽此方法
-    /*public static SSLSocketFactory getSocketFactory(Context mContext) throws Exception {
-        String password = "";
+    public static SSLSocketFactory getSocketFactory(InputStream caCrtFile, InputStream crtFile, InputStream keyFile,
+                                                    String password) throws Exception {
         Security.addProvider(new BouncyCastleProvider());
 
         // load CA certificate
         X509Certificate caCert = null;
 
-        BufferedInputStream bis = new BufferedInputStream(mContext.getAssets().open("self-ca.pem"));
+        BufferedInputStream bis = new BufferedInputStream(caCrtFile);
         CertificateFactory cf = CertificateFactory.getInstance("X.509");
 
         while (bis.available() > 0) {
@@ -76,16 +83,16 @@ public class SSLUtil {
         }
 
         // load client certificate
-        bis = new BufferedInputStream(mContext.getAssets().open("cert.pem"));
+        bis = new BufferedInputStream(crtFile);
         X509Certificate cert = null;
         while (bis.available() > 0) {
             cert = (X509Certificate) cf.generateCertificate(bis);
         }
 
         // load client private cert
-        PEMParser pemParser = new PEMParser(new InputStreamReader(mContext.getAssets().open("key.pem")));
+        PEMParser pemParser = new PEMParser(new InputStreamReader(keyFile));
         Object object = pemParser.readObject();
-        JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider("BC");
+        JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
         KeyPair key = converter.getKeyPair((PEMKeyPair) object);
 
         KeyStore caKs = KeyStore.getInstance(KeyStore.getDefaultType());
@@ -106,7 +113,7 @@ public class SSLUtil {
         context.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
 
         return context.getSocketFactory();
-    }*/
+    }
 
     //忽略证书
     public static SSLSocketFactory getSSL() {

@@ -726,10 +726,10 @@ public class MqttV5 {
     public void destory(boolean force) {
         try {
             if (mqttClient != null) {
-                if (mqttClient.isConnected()) {
-                    mqttClient.disconnect();
-                }
                 mqttClient.close(force);
+                mIMqttStatusListener = null;
+                mIReceiveActionListener = null;
+                mqttClient = null;
             }
         } catch (Exception e) {
             e.printStackTrace();
