@@ -17,9 +17,14 @@ object MqttUtils {
      * 连接mqtt
      */
     fun connect(context: Context) {
+        //5.0服务器
         MqttConfig.mqttClientId = "puyang"
         MqttConfig.mqttUserName = "ljbclient01"
         MqttConfig.mqttUserPw = "Z6bsl+eVuAKwbe5c7VRy+S"
+        //mqtt3.0 服务器
+//        MqttConfig.mqttClientId = "GID_LJB_APP@@@17ddd893d178cb56bb14b2c2e8e2c790_1703050701"
+//        MqttConfig.mqttUserName = "ljb_background"
+//        MqttConfig.mqttUserPw = "6GvG89ScTNzrrm7sfC0qC"
 
         mqttV5 = MqttV5.Builder()
             .setUserContext(context)
@@ -87,8 +92,9 @@ object MqttUtils {
                 }
             }
             .build()
-        mqttV5?.connect("ssl://139.224.44.126:8883")
-        //"ssl://139.224.44.126:1883"
+        mqttV5?.connect("ssl://139.224.44.126:1883")
+        //"ssl://139.224.44.126:1883" 5.0服务器
+        //"ssl://47.114.203.159:8883" 3.0服务器
     }
 
     fun disConnect(){
