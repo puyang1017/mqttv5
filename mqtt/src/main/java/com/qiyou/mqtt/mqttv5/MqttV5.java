@@ -723,10 +723,11 @@ public class MqttV5 {
     /**
      * 断开链接
      */
-    public void destory(boolean force) {
+    public void destory() {
         try {
             if (mqttClient != null) {
-                mqttClient.close(force);
+                mqttClient.disconnect();
+//                mqttClient.close(force);
                 mIMqttStatusListener = null;
                 mIReceiveActionListener = null;
                 mqttClient = null;

@@ -98,7 +98,7 @@ object MqttUtils {
     }
 
     fun disConnect(){
-        mqttV5?.destory(false)
+        mqttV5?.destory()
         mqttV5 = null
     }
 }
