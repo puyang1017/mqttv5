@@ -13,6 +13,8 @@ import java.util.List;
 
 import android.text.TextUtils;
 
+import com.qiyou.mqtt.mqttv5.mqttPublisher.MqttPublisher;
+
 import org.eclipse.paho.mqttv5.client.DisconnectedBufferOptions;
 import org.eclipse.paho.mqttv5.client.IMqttMessageListener;
 import org.eclipse.paho.mqttv5.client.IMqttToken;
@@ -47,6 +49,7 @@ public class MqttV5 {
     //mqtt实例
     private MqttAsyncClient mqttClient;
     private MqttProperties mMqttProperties;
+    private MqttPublisher mMqttPublisher;//队列发送消息
 
     private MqttV5(Builder builder) {
         this.isAlibabaCloud = builder.isAlibabaCloud;
@@ -160,6 +163,7 @@ public class MqttV5 {
                     }
                 }
             });
+            mMqttPublisher = new MqttPublisher(mqttClient);
         } catch (MqttException | IllegalArgumentException e) {
             e.printStackTrace();
         }
@@ -354,16 +358,7 @@ public class MqttV5 {
      * @param msg 消息
      */
     public void publishMsg(String msg, IPublishActionListener iPublishActionListener) {
-        try {
-            //retained:设置发送完消息后是否还保留 与cleanSession差不多
-            if (mqttClient.isConnected()) {
-                mqttClient.publish(publishTopic, msg.getBytes(), this.publishQos, this.publishMsgRetained, this.userContext, iPublishActionListener);
-            } else {
-                iPublishActionListener.onConnectionLost();
-            }
-        } catch (MqttException e) {
-            e.printStackTrace();
-        }
+        if (mMqttPublisher != null) mMqttPublisher.publishMsg(publishTopic, msg.getBytes(), this.publishQos, this.publishMsgRetained, this.userContext, false, iPublishActionListener);
     }
 
     /**
@@ -374,17 +369,9 @@ public class MqttV5 {
      * @param iPublishActionListener 回调
      */
     public void publishMsg(String topic, String msg, IPublishActionListener iPublishActionListener) {
-        try {
-            if (TextUtils.isEmpty(topic)) return;
-            //retained:设置发送完消息后是否还保留 与cleanSession差不多
-            if (mqttClient.isConnected()) {
-                mqttClient.publish(topic, msg.getBytes(), this.publishQos, this.publishMsgRetained, this.userContext, iPublishActionListener);
-            } else {
-                iPublishActionListener.onConnectionLost();
-            }
-        } catch (MqttException e) {
-            e.printStackTrace();
-        }
+        if (TextUtils.isEmpty(topic)) return;
+        //retained:设置发送完消息后是否还保留 与cleanSession差不多
+        if (mMqttPublisher != null) mMqttPublisher.publishMsg(topic, msg.getBytes(), this.publishQos, this.publishMsgRetained, this.userContext, false, iPublishActionListener);
     }
 
     /**
@@ -397,17 +384,9 @@ public class MqttV5 {
      * @param iPublishActionListener 回调
      */
     public void publishMsg(String topic, int qos, boolean retained, String msg, IPublishActionListener iPublishActionListener) {
-        try {
-            if (TextUtils.isEmpty(topic)) return;
-            //retained:设置发送完消息后是否还保留 与cleanSession差不多
-            if (mqttClient.isConnected()) {
-                mqttClient.publish(topic, msg.getBytes(), qos, retained, this.userContext, iPublishActionListener);
-            } else {
-                iPublishActionListener.onConnectionLost();
-            }
-        } catch (MqttException e) {
-            e.printStackTrace();
-        }
+        if (TextUtils.isEmpty(topic)) return;
+        //retained:设置发送完消息后是否还保留 与cleanSession差不多
+        if (mMqttPublisher != null) mMqttPublisher.publishMsg(topic, msg.getBytes(), qos, retained, this.userContext, false, iPublishActionListener);
     }
 
     /**
@@ -420,18 +399,62 @@ public class MqttV5 {
      * @param iPublishActionListener 回调
      */
     public void publishMsg(String topic, int qos, boolean retained, byte[] msg, IPublishActionListener iPublishActionListener) {
-        try {
-            if (TextUtils.isEmpty(topic)) return;
-            //retained:设置发送完消息后是否还保留 与cleanSession差不多
-            if (mqttClient.isConnected()) {
-                mqttClient.publish(topic, msg, qos, retained, this.userContext, iPublishActionListener);
-            } else {
-                iPublishActionListener.onConnectionLost();
-            }
-        } catch (MqttException e) {
-            e.printStackTrace();
-        }
+        if (TextUtils.isEmpty(topic)) return;
+        if (mMqttPublisher != null) mMqttPublisher.publishMsg(topic, msg, qos, retained, this.userContext, false, iPublishActionListener);
     }
+
+    /**
+     * 并行发布消息（默认topic）
+     *
+     * @param msg 消息
+     */
+    public void publishMsgParallel(String msg, IPublishActionListener iPublishActionListener) {
+        if (mMqttPublisher != null) mMqttPublisher.publishMsg(publishTopic, msg.getBytes(), this.publishQos, this.publishMsgRetained, this.userContext, true, iPublishActionListener);
+    }
+
+    /**
+     * 并行发送消息
+     *
+     * @param topic                  topic
+     * @param msg                    发送的内容
+     * @param iPublishActionListener 回调
+     */
+    public void publishMsgParallel(String topic, String msg, IPublishActionListener iPublishActionListener) {
+        if (TextUtils.isEmpty(topic)) return;
+        //retained:设置发送完消息后是否还保留 与cleanSession差不多
+        if (mMqttPublisher != null) mMqttPublisher.publishMsg(topic, msg.getBytes(), this.publishQos, this.publishMsgRetained, this.userContext, true, iPublishActionListener);
+    }
+
+    /**
+     * 并行发送消息
+     *
+     * @param topic                  topic
+     * @param qos                    发送类型
+     * @param retained               是在服务器否保存消息
+     * @param msg                    发送的内容
+     * @param iPublishActionListener 回调
+     */
+    public void publishMsgParallel(String topic, int qos, boolean retained, String msg, IPublishActionListener iPublishActionListener) {
+        if (TextUtils.isEmpty(topic)) return;
+        //retained:设置发送完消息后是否还保留 与cleanSession差不多
+        if (mMqttPublisher != null) mMqttPublisher.publishMsg(topic, msg.getBytes(), qos, retained, this.userContext, true, iPublishActionListener);
+    }
+
+    /**
+     * 并行发送消息
+     *
+     * @param topic                  topic
+     * @param qos                    发送类型
+     * @param retained               是在服务器否保存消息
+     * @param msg                    发送的内容
+     * @param iPublishActionListener 回调
+     */
+    public void publishMsgParallel(String topic, int qos, boolean retained, byte[] msg, IPublishActionListener iPublishActionListener) {
+        if (TextUtils.isEmpty(topic)) return;
+        if (mMqttPublisher != null) mMqttPublisher.publishMsg(topic, msg, qos, retained, this.userContext, true, iPublishActionListener);
+    }
+
+
     private Long sessionExpiryInterval;
     private boolean isAlibabaCloud = false;
     private String clientId;
@@ -731,6 +754,10 @@ public class MqttV5 {
                 mIMqttStatusListener = null;
                 mIReceiveActionListener = null;
                 mqttClient = null;
+                if (mMqttPublisher != null) {
+                    mMqttPublisher.shutdown();
+                    mMqttPublisher = null;
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
